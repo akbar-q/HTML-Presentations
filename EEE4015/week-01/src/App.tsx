@@ -459,7 +459,7 @@ function App() {
             exit={animationsOn ? { opacity: 0, y: -12, filter: 'blur(4px)' } : { opacity: 0 }}
             transition={{ duration: animationsOn ? 0.34 : 0, ease: 'easeOut' }}
           >
-            {renderSlide(slide, slideProps)}
+            {renderSlide(slide, slideProps, () => goTo(2))}
           </motion.section>
         </AnimatePresence>
       </main>
@@ -494,9 +494,9 @@ function App() {
   );
 }
 
-function renderSlide(index: number, props: AppProps) {
+function renderSlide(index: number, props: AppProps, startMission: () => void) {
   switch (index) {
-    case 0: return <WelcomeSlide {...props} />;
+    case 0: return <WelcomeSlide {...props} onStart={startMission} />;
     case 1: return <ScheduleSlide />;
     case 2: return <WarmupSlide {...props} />;
     case 3: return <SystemSlide motionEnabled={props.motionEnabled} />;
@@ -697,8 +697,7 @@ function ReviewSlide() {
   );
 }
 
-function WelcomeSlide({ addPoints, motionEnabled }: AppProps) {
-  const [revealed, setRevealed] = useState(false);
+function WelcomeSlide({ addPoints, motionEnabled, onStart }: AppProps & { onStart: () => void }) {
   return (
     <div className="welcome-layout">
       <div className="welcome-copy">
@@ -706,10 +705,9 @@ function WelcomeSlide({ addPoints, motionEnabled }: AppProps) {
         <h1 id="slide-title-0">A tiny computer.<br /><span>A real-world job.</span></h1>
         <p className="welcome-lede">Today: discover what makes a system <strong>embedded</strong>, then sketch the first idea for a smart seedling cabinet.</p>
         <div className="welcome-meta"><span><b>32</b> SCREENS</span><span><b>2</b> BREAKS</span><span><b>240</b> MINUTES</span></div>
-        <button className="primary-button" type="button" onClick={() => setRevealed(true)}>
-          {revealed ? 'LET’S PLAY' : 'START THE MISSION'} <ArrowRight size={18} />
+        <button className="primary-button" type="button" onClick={onStart}>
+          START THE MISSION <ArrowRight size={18} />
         </button>
-        {revealed && <motion.p className="start-note" initial={motionEnabled ? { opacity: 0, x: -8 } : false} animate={{ opacity: 1, x: 0 }}>Next up: three quick calls. Trust your instincts.</motion.p>}
       </div>
       <div className="welcome-art" aria-label="Illustration of a sensor sending a signal to a controller, which switches a light">
         <div className={`orbit orbit--one ${motionEnabled ? 'orbit--moving' : ''}`} />
@@ -719,7 +717,7 @@ function WelcomeSlide({ addPoints, motionEnabled }: AppProps) {
         <div className="hero-node hero-node--output"><Lightbulb size={26} /><span>RESPOND</span></div>
         <div className="hero-line hero-line--left" /><div className="hero-line hero-line--right" />
         <span className="art-caption">WORLD <i>→</i> DECISION <i>→</i> ACTION</span>
-        <button className="art-answer" type="button" onClick={() => { addPoints(5); setRevealed(true); }} aria-label="Add five class challenge points">
+        <button className="art-answer" type="button" onClick={() => addPoints(5)} aria-label="Add five class challenge points">
           <Sparkles size={15} /> +5 IF YOU’RE READY
         </button>
       </div>
