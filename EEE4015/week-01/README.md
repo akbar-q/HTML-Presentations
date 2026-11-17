@@ -39,7 +39,9 @@ Vite builds static files into `dist/`. The relative asset base allows the build 
 
 ## GitHub Pages deployment
 
-The repository-root workflow at `.github/workflows/deploy-eee4015-week-01.yml` builds this folder and publishes its `dist/` output when files in this lesson change. Push the workflow and project to the repository's `main` or `master` branch, then in GitHub open **Settings → Pages** and set the source to **GitHub Actions**. The first deployment can also be started from the workflow's **Run workflow** action.
+The repository-root workflow at `.github/workflows/deploy-eee4015-week-01.yml` builds this folder and assembles the complete static site when the lesson or course index changes. The course index is at `https://edu.akbarq.com/`; this lesson is at `https://edu.akbarq.com/EEE4015/week-01/`. The 404 page also includes the unit/week index.
+
+Push the workflow and project to the repository's `main` or `master` branch, then in GitHub open **Settings → Pages** and set the source to **GitHub Actions**. The workflow adds `edu.akbarq.com` as the deployed Pages `CNAME`. The first deployment can also be started from the workflow's **Run workflow** action.
 
 The lesson uses no backend or secret values. If the project is moved to another repository, update the workflow's working directory and artifact path.
 

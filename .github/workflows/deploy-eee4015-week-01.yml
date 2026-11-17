@@ -1,10 +1,13 @@
-name: Deploy EEE4015 Week 1
+name: Deploy EEE4015 Course Library
 
 on:
   push:
     branches: [main, master]
     paths:
       - 'EEE4015/week-01/**'
+      - 'index.html'
+      - '404.html'
+      - 'assets/eee4015-hub.css'
       - '.github/workflows/deploy-eee4015-week-01.yml'
   workflow_dispatch:
 
@@ -35,10 +38,17 @@ jobs:
       - name: Build lesson
         working-directory: EEE4015/week-01
         run: npm run build
+      - name: Assemble Pages site
+        run: |
+          mkdir -p _site/assets _site/EEE4015/week-01
+          cp index.html 404.html _site/
+          cp assets/eee4015-hub.css _site/assets/
+          cp -R EEE4015/week-01/dist/. _site/EEE4015/week-01/
+          printf 'edu.akbarq.com\n' > _site/CNAME
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: EEE4015/week-01/dist
+          path: _site
 
   deploy:
     environment:
