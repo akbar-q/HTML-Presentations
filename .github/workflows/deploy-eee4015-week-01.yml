@@ -7,6 +7,7 @@ on:
       - 'EEE4015/week-01/**'
       - 'EEE4015/week-02/**'
       - 'EEE4015/week-03/**'
+      - 'EEE4015/week-04/**'
       - 'index.html'
       - '404.html'
       - 'assets/eee4015-hub.css'
@@ -37,6 +38,7 @@ jobs:
             EEE4015/week-01/package-lock.json
             EEE4015/week-02/package-lock.json
             EEE4015/week-03/package-lock.json
+            EEE4015/week-04/package-lock.json
       - name: Install dependencies
         working-directory: EEE4015/week-01
         run: npm ci
@@ -55,14 +57,21 @@ jobs:
       - name: Build Week 3 lesson
         working-directory: EEE4015/week-03
         run: npm run build
+      - name: Install Week 4 dependencies
+        working-directory: EEE4015/week-04
+        run: npm ci
+      - name: Build Week 4 lesson
+        working-directory: EEE4015/week-04
+        run: npm run build
       - name: Assemble Pages site
         run: |
-          mkdir -p _site/assets _site/EEE4015/week-01 _site/EEE4015/week-02 _site/EEE4015/week-03
+          mkdir -p _site/assets _site/EEE4015/week-01 _site/EEE4015/week-02 _site/EEE4015/week-03 _site/EEE4015/week-04
           cp index.html 404.html _site/
           cp assets/eee4015-hub.css _site/assets/
           cp -R EEE4015/week-01/dist/. _site/EEE4015/week-01/
           cp -R EEE4015/week-02/dist/. _site/EEE4015/week-02/
           cp -R EEE4015/week-03/dist/. _site/EEE4015/week-03/
+          cp -R EEE4015/week-04/dist/. _site/EEE4015/week-04/
           printf 'edu.akbarq.com\n' > _site/CNAME
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
