@@ -187,17 +187,58 @@ function CaseAnatomy() {
 }
 
 type BuilderVariant = 'functional' | 'failure';
+type TestPlanExample = { requirement: string; setup: string; input: string; expected: string };
+const testPlanExamples: Record<string, TestPlanExample> = {
+  normal: {
+    requirement: 'FR-01',
+    setup: 'Record board/code version, approved supply, sensor/module, units, and the agreed normal operating condition.',
+    input: 'Apply the same normal condition three times. Record each displayed/logged reading and associated status.',
+    expected: 'Each reading includes the agreed units, remains inside the project-defined normal range, and produces the specified normal status.',
+  },
+  boundary: {
+    requirement: 'FR-02',
+    setup: 'Record code version, threshold T, input source, output/status, and the project rule for equality at T.',
+    input: 'Using the approved simulator or tutor-approved safe input, apply T−1, T, and T+1 in separate runs. Do not rewire an energized circuit.',
+    expected: 'For all three values, the output follows the documented below/equal/above rule. Equality behavior matches the requirement.',
+  },
+  invalid: {
+    requirement: 'FR-04',
+    setup: 'Use a labelled simulation or tutor-approved low-risk setup. Record code version, fault value/source, initial mode, and expected safe state.',
+    input: 'Apply one agreed invalid/out-of-range value in simulation. Observe fault indication and output request; restore a valid value using the approved recovery step.',
+    expected: 'Invalid input is identified, the agreed safe response is shown, and recovery occurs only under the documented condition.',
+  },
+  reset: {
+    requirement: 'FR-04',
+    setup: 'Record code version, initial mode/output, approved reset or restart procedure, and tutor authorization for any physical test.',
+    input: 'From the agreed safe starting condition, invoke the approved reset/restart procedure. Record startup output state, input validation, and restart action.',
+    expected: 'Outputs enter the documented startup state; stale input is not treated as current; operation resumes only when the agreed condition is met.',
+  },
+};
 function TestCaseBuilder({ variant }: { variant: BuilderVariant }) {
-  const [requirement, setRequirement] = useState(variant === 'functional' ? 'FR-02' : 'FR-04');
-  const [setup, setSetup] = useState('');
-  const [input, setInput] = useState('');
-  const [expected, setExpected] = useState('');
+  const defaultExample = variant === 'functional' ? 'normal' : 'invalid';
+  const [example, setExample] = useState(defaultExample);
+  const [requirement, setRequirement] = useState(testPlanExamples[defaultExample].requirement);
+  const [setup, setSetup] = useState(testPlanExamples[defaultExample].setup);
+  const [input, setInput] = useState(testPlanExamples[defaultExample].input);
+  const [expected, setExpected] = useState(testPlanExamples[defaultExample].expected);
   const [observed, setObserved] = useState('');
   const [evidence, setEvidence] = useState('');
   const [result, setResult] = useState<'Not run' | 'Pass' | 'Fail'>('Not run');
   const ready = [requirement, setup, input, expected, observed, evidence].every((field) => field.trim());
+  const learnerRecordStarted = observed.trim() !== '' || evidence.trim() !== '';
   const heading = variant === 'functional' ? 'Build a traceable functional test.' : 'Write a failure test, then preserve the retest.';
-  return <div className="w8-tool"><Heading slide={variant === 'functional' ? 7 : 21} eyebrow={variant === 'functional' ? 'TEST CASE BUILDER / PLANNING TEMPLATE' : 'FAILURE RECORD / RETEST TEMPLATE'} title={heading} subtitle="The form organizes your record; it does not run or verify the physical system. Use observed results only." tone={variant === 'failure' ? 'coral' : 'blue'}/><div className="w8-builder-layout"><div className="w8-controls"><label>Requirement ID<select value={requirement} onChange={(event) => setRequirement(event.target.value)}>{sampleRequirements.map((item) => <option key={item.id}>{item.id}</option>)}</select></label><label>Setup and conditions<textarea rows={2} value={setup} onChange={(event) => setSetup(event.target.value)} placeholder="Version, equipment, supply, initial state"/></label><label>Input / procedure<textarea rows={2} value={input} onChange={(event) => setInput(event.target.value)} placeholder="Exact stimulus or ordered test steps"/></label><label>Expected result and limit<textarea rows={2} value={expected} onChange={(event) => setExpected(event.target.value)} placeholder="Predicted behavior and acceptance boundary"/></label><label>Observed result<textarea rows={2} value={observed} onChange={(event) => setObserved(event.target.value)} placeholder="Enter only after the test is run"/></label><label>Evidence reference<input value={evidence} onChange={(event) => setEvidence(event.target.value)} placeholder="Test ID, filename, log row, dated photo"/></label><div className="w8-result-actions"><button onClick={() => setResult('Pass')} disabled={!ready}>MARK PASS</button><button onClick={() => setResult('Fail')} disabled={!ready}>MARK FAIL</button><button onClick={() => setResult('Not run')}>RESET</button></div></div><aside className={`w8-case-card w8-case-card--${result.toLowerCase().replace(' ', '-')}`}><span>TEST RECORD / {requirement}</span><strong>{result.toUpperCase()}</strong><div className="w8-case-progress"><i className={requirement ? 'is-filled' : ''}/><i className={setup ? 'is-filled' : ''}/><i className={input ? 'is-filled' : ''}/><i className={expected ? 'is-filled' : ''}/><i className={observed ? 'is-filled' : ''}/><i className={evidence ? 'is-filled' : ''}/></div><p><b>Setup</b>{setup || 'Not entered'}</p><p><b>Input</b>{input || 'Not entered'}</p><p><b>Expected</b>{expected || 'Not entered'}</p><p><b>Observed</b>{observed || 'Not run'}</p><small>{ready ? 'Record fields complete. Review result with your tutor/team.' : 'Complete the record before making a pass/fail decision.'}</small></aside></div></div>;
+  const loadExample = (key: string) => {
+    setExample(key);
+    const plan = testPlanExamples[key];
+    setRequirement(plan?.requirement ?? (variant === 'functional' ? 'FR-02' : 'FR-04'));
+    setSetup(plan?.setup ?? '');
+    setInput(plan?.input ?? '');
+    setExpected(plan?.expected ?? '');
+    setObserved('');
+    setEvidence('');
+    setResult('Not run');
+  };
+  return <div className="w8-tool"><Heading slide={variant === 'functional' ? 7 : 21} eyebrow={variant === 'functional' ? 'TEST CASE BUILDER / PLANNING TEMPLATE' : 'FAILURE RECORD / RETEST TEMPLATE'} title={heading} subtitle="Start from an example plan, adapt it to your project, then enter only results you actually observed." tone={variant === 'failure' ? 'coral' : 'blue'}/><div className="w8-example-bar"><label>EXAMPLE PLAN<select aria-label="Load an example test plan" value={example} onChange={(event) => loadExample(event.target.value)}><option value="blank">Blank learner plan</option><option value="normal">Normal operating range</option><option value="boundary">Threshold boundary T−1 / T / T+1</option><option value="invalid">Invalid input (simulation)</option><option value="reset">Reset / power restart</option></select></label><p><AlertTriangle size={16}/>{example === 'blank' ? 'LEARNER PLAN: enter the requirement-specific setup, procedure, expected limit, observed result, and evidence.' : learnerRecordStarted ? 'EXAMPLE ADAPTED: observed result and evidence are learner-entered. Check they match the actual test.' : 'EXAMPLE ONLY: adapt the expected criterion to your requirement. Observed result and evidence intentionally remain empty.'}</p></div><div className="w8-builder-layout"><div className="w8-controls"><label>Requirement ID<select value={requirement} onChange={(event) => setRequirement(event.target.value)}>{sampleRequirements.map((item) => <option key={item.id}>{item.id}</option>)}</select></label><label>Setup and conditions<textarea rows={3} value={setup} onChange={(event) => setSetup(event.target.value)} placeholder="Version, equipment, supply, initial state"/></label><label>Input / procedure<textarea rows={3} value={input} onChange={(event) => setInput(event.target.value)} placeholder="Exact stimulus or ordered test steps"/></label><label>Expected result and limit<textarea rows={3} value={expected} onChange={(event) => setExpected(event.target.value)} placeholder="Predicted behavior and acceptance boundary"/></label><label>Observed result<textarea rows={2} value={observed} onChange={(event) => setObserved(event.target.value)} placeholder="Enter only after the test is run"/></label><label>Evidence reference<input value={evidence} onChange={(event) => setEvidence(event.target.value)} placeholder="Test ID, filename, log row, dated photo"/></label><div className="w8-result-actions"><button onClick={() => setResult('Pass')} disabled={!ready}>MARK PASS</button><button onClick={() => setResult('Fail')} disabled={!ready}>MARK FAIL</button><button onClick={() => loadExample('blank')}>CLEAR PLAN</button></div></div><aside className={`w8-case-card w8-case-card--${result.toLowerCase().replace(' ', '-')}`}><span>{example === 'blank' || learnerRecordStarted ? 'LEARNER TEST RECORD' : 'EXAMPLE PLAN / NOT RUN'} / {requirement}</span><strong>{result.toUpperCase()}</strong><div className="w8-case-progress"><i className={requirement ? 'is-filled' : ''}/><i className={setup ? 'is-filled' : ''}/><i className={input ? 'is-filled' : ''}/><i className={expected ? 'is-filled' : ''}/><i className={observed ? 'is-filled' : ''}/><i className={evidence ? 'is-filled' : ''}/></div><p><b>Setup</b>{setup || 'Not entered'}</p><p><b>Input</b>{input || 'Not entered'}</p><p><b>Expected</b>{expected || 'Not entered'}</p><p><b>Observed</b>{observed || 'Not run'}</p><small>{ready ? 'Record fields complete. Review result with your tutor/team.' : example === 'blank' ? 'Complete the record before making a pass/fail decision.' : learnerRecordStarted ? 'Example adapted. Record only results you actually observed and link the evidence.' : 'Example plan loaded. Observed result and evidence are intentionally blank.'}</small></aside></div></div>;
 }
 
 function CoverageMatrix() {

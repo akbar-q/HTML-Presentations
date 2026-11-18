@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-Use the slide controls or arrow keys. The interactive test builder is a record template and does not execute hardware tests. The sensor trace is labelled simulated and must not be submitted as measured evidence.
+Use the slide controls or arrow keys. The test-case builder includes example plans for normal range, threshold boundaries, simulated invalid input, and reset/restart. Adapt the setup and acceptance criterion to your project; observed results and evidence fields start blank. The builder does not execute hardware tests. The sensor trace is labelled simulated and must not be submitted as measured evidence.
 
 ## Build
 

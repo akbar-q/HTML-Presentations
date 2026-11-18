@@ -105,6 +105,11 @@
 .w8-anatomy-grid article > strong { display: block; color: var(--blue); font: 650 9px/1.35 var(--font-display); }
 .w8-anatomy-grid article > small { display: block; margin-top: 6px; color: #8e9c93; font-size: 8px; line-height: 1.35; }
 .w8-builder-layout { grid-template-columns: minmax(0, 1.1fr) minmax(270px, .9fr); align-items: start; }
+.w8-example-bar { display: grid; grid-template-columns: minmax(220px, .65fr) minmax(0, 1.35fr); align-items: center; gap: 12px; margin: -7px 0 15px; padding: 10px 12px; border: 1px solid rgba(255,183,77,.27); background: rgba(255,183,77,.045); }
+.w8-example-bar > label { display: flex; flex-direction: column; gap: 5px; color: #ffc474; font: 700 7px var(--font-display); letter-spacing: .1em; }
+.w8-example-bar select { width: 100%; min-height: 36px; padding: 0 9px; border: 1px solid #665b43; border-radius: 3px; background: #1d2725; color: var(--paper); font: 500 11px "Aptos", sans-serif; letter-spacing: 0; }
+.w8-example-bar p { display: flex; align-items: flex-start; gap: 8px; margin: 0; color: #d0c3a9; font-size: 9px; line-height: 1.4; }
+.w8-example-bar p svg { flex: 0 0 auto; color: #ffc474; }
 .w8-case-card { border-color: rgba(125,200,235,.32); }
 .w8-case-card > span { margin-top: 0; }
 .w8-case-card > strong { display: block; color: var(--blue); font: 750 18px var(--font-display); }
@@ -360,6 +365,7 @@
   .w8-level-rail button { min-height: 45px; grid-template-columns: 22px 1fr; }
   .w8-level-rail button > i { display: none; }
   .w8-anatomy-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .w8-example-bar { grid-template-columns: 1fr; }
   .w8-coverage-status { grid-template-columns: 1fr 1fr; }
   .w8-coverage-status > p { grid-column: 1 / -1; }
   .w8-reset-steps { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -381,6 +387,7 @@
   .w8-tool .slide-heading h1 { font-size: 29px; line-height: 1.03; }
   .w8-tool .slide-subtitle { font-size: 13px; }
   .w8-two-fields { grid-template-columns: 1fr; }
+  .w8-example-bar { margin-top: -3px; padding: 9px; }
   .w8-anatomy-grid { grid-template-columns: 1fr; }
   .w8-anatomy-grid article { min-height: 0; }
   .w8-coverage-wrap > table { min-width: 730px; }
