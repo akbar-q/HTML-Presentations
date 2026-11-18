@@ -10,6 +10,7 @@ on:
       - 'EEE4015/week-04/**'
       - 'EEE4015/week-05/**'
       - 'EEE4015/week-06/**'
+      - 'EEE4015/week-07/**'
       - 'index.html'
       - '404.html'
       - 'assets/eee4015-hub.css'
@@ -43,6 +44,7 @@ jobs:
             EEE4015/week-04/package-lock.json
             EEE4015/week-05/package-lock.json
             EEE4015/week-06/package-lock.json
+            EEE4015/week-07/package-lock.json
       - name: Install dependencies
         working-directory: EEE4015/week-01
         run: npm ci
@@ -79,9 +81,15 @@ jobs:
       - name: Build Week 6 lesson
         working-directory: EEE4015/week-06
         run: npm run build
+      - name: Install Week 7 dependencies
+        working-directory: EEE4015/week-07
+        run: npm ci
+      - name: Build Week 7 lesson
+        working-directory: EEE4015/week-07
+        run: npm run build
       - name: Assemble Pages site
         run: |
-          mkdir -p _site/assets _site/EEE4015/week-01 _site/EEE4015/week-02 _site/EEE4015/week-03 _site/EEE4015/week-04 _site/EEE4015/week-05 _site/EEE4015/week-06
+          mkdir -p _site/assets _site/EEE4015/week-01 _site/EEE4015/week-02 _site/EEE4015/week-03 _site/EEE4015/week-04 _site/EEE4015/week-05 _site/EEE4015/week-06 _site/EEE4015/week-07
           cp index.html 404.html _site/
           cp assets/eee4015-hub.css _site/assets/
           cp -R EEE4015/week-01/dist/. _site/EEE4015/week-01/
@@ -90,6 +98,7 @@ jobs:
           cp -R EEE4015/week-04/dist/. _site/EEE4015/week-04/
           cp -R EEE4015/week-05/dist/. _site/EEE4015/week-05/
           cp -R EEE4015/week-06/dist/. _site/EEE4015/week-06/
+          cp -R EEE4015/week-07/dist/. _site/EEE4015/week-07/
           printf 'edu.akbarq.com\n' > _site/CNAME
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
