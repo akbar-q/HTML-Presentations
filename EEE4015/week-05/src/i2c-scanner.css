@@ -1,0 +1,20 @@
+.i2c-address-note { display:flex; flex-direction:column; gap:6px; padding:11px; border-left:2px solid var(--blue); background:rgba(125,200,235,.05); }
+.i2c-address-note b { color:var(--blue); font:700 8px var(--font-display); letter-spacing:.09em; }
+.i2c-address-note span { color:var(--paper); font:700 11px var(--font-display); line-height:1.45; }
+.i2c-address-note small { color:#99a79e; font-size:9px; line-height:1.4; }
+.i2c-scanner { margin-top:14px; padding:15px; border:1px solid var(--line); border-radius:6px; background:rgba(25,39,39,.87); }
+.i2c-scanner__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+.i2c-scanner__heading>div>span { color:var(--blue); font:700 8px var(--font-display); letter-spacing:.11em; }
+.i2c-scanner__heading h2 { margin:6px 0; color:var(--paper); font:700 19px var(--font-display); }
+.i2c-scanner__heading p { max-width:680px; margin:0; color:#aebbb2; font-size:10px; line-height:1.45; }
+.i2c-copy-button { min-height:34px; display:inline-flex; flex:0 0 auto; align-items:center; gap:7px; padding:0 10px; border:1px solid #53635b; border-radius:4px; background:transparent; color:var(--lime); font:700 8px var(--font-display); cursor:pointer; }
+.i2c-copy-button:hover { border-color:var(--lime); background:rgba(215,250,88,.06); }
+.i2c-scanner pre { max-height:310px; overflow:auto; margin:12px 0 0; padding:12px; border:1px solid rgba(220,235,222,.12); border-radius:4px; background:#10191a; color:#d5e0d6; font:10px/1.5 Consolas,"Cascadia Code",monospace; tab-size:2; }
+.i2c-scanner code { white-space:pre; }
+.i2c-scanner__note { margin:9px 0 0; color:#98a69d; font-size:9px; line-height:1.5; }
+@media (max-width:600px) {
+  .i2c-scanner { padding:11px; }
+  .i2c-scanner__heading { flex-direction:column; }
+  .i2c-copy-button { align-self:flex-start; }
+  .i2c-scanner pre { max-height:260px; font-size:9px; }
+}

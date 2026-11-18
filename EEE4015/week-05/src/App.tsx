@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
   ArrowLeft, ArrowRight, Check, Clock3, Cpu, Expand,
-  Gauge, Lightbulb, MonitorPlay, Pause, Play, RotateCcw, Sparkles,
+  Copy, Gauge, Lightbulb, MonitorPlay, Pause, Play, RotateCcw, Sparkles,
   Cable, Radio, ShieldAlert, X,
 } from 'lucide-react';
 
@@ -117,8 +117,60 @@ function I2cLcdLab() {
   const [address,setAddress]=useState('0');
   const [board,setBoard]=useState<'uno'|'esp32'>('uno');
   const [message,setMessage]=useState('I2C STATUS');
+  const [copied,setCopied]=useState(false);
   const uno=board==='uno';
-  return <div className="w5-tool"><Heading slide={10} eyebrow="LOCAL DISPLAY MODEL / I2C" title="Two bus signals, plus compatibility checks." subtitle="Change the board and address assumptions; keep simulator configuration separate from physical module setup." tone="blue"/><div className="i2c-lab"><div className="w5-controls"><label>Controller<select value={board} onChange={(event)=>setBoard(event.target.value as 'uno'|'esp32')}><option value="uno">Arduino Uno R3</option><option value="esp32">ESP32 family (verify exact board)</option></select></label><label>Address configuration<select value={address} onChange={(event)=>setAddress(event.target.value)}><option value="0">Tinkercad example: 0</option><option value="0x27">Physical example: 0x27</option><option value="0x3F">Physical example: 0x3F</option></select></label><label>Display message<input maxLength={16} value={message} onChange={(event)=>setMessage(event.target.value.toUpperCase())}/></label><div className="w5-pin-note"><b>BUS PINS</b><span>{uno?'SDA A4 · SCL A5':'SDA/SCL are board-specific'}</span><small>Check backpack supply and pull-up voltage.</small></div></div><div className="i2c-simulator"><div className="bus-wire"><i/>SDA<i/>SCL<i/></div><div className="lcd-bezel"><div className="lcd-glass"><div>{message.slice(0,16).padEnd(16,' ')}</div><div>{`ADDR ${address}`.slice(0,16).padEnd(16,' ')}</div></div></div><div className="address-warning"><Radio size={16}/><span>{address==='0'?'Simulator address/index 0 is specific to the supplied Tinkercad library.':'Physical backpack address is illustrative; scan/check the actual module.'}</span></div></div></div></div>;
+  const scannerCode = `#include <Wire.h>
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin(); // Uno R3: SDA=A4, SCL=A5
+
+  Serial.println("Scanning I2C bus...");
+  byte found = 0;
+  for (byte address = 1; address < 127; address++) {
+    Wire.beginTransmission(address);
+    byte error = Wire.endTransmission();
+    if (error == 0) {
+      Serial.print("Found device at 0x");
+      if (address < 16) Serial.print("0");
+      Serial.println(address, HEX);
+      found++;
+    }
+  }
+  if (found == 0) Serial.println("No I2C devices found");
+}
+
+void loop() {}
+`;
+  const copyScanner = async () => {
+    try {
+      await navigator.clipboard.writeText(scannerCode);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
+  return (
+    <div className="w5-tool">
+      <Heading slide={10} eyebrow="LOCAL DISPLAY MODEL / I2C" title="Two bus signals, plus compatibility checks." subtitle="Change the board and address assumptions; keep simulator configuration separate from physical module setup." tone="blue" />
+      <div className="i2c-lab">
+        <div className="w5-controls">
+          <label>Controller<select value={board} onChange={(event)=>setBoard(event.target.value as 'uno'|'esp32')}><option value="uno">Arduino Uno R3</option><option value="esp32">ESP32 family (verify exact board)</option></select></label>
+          <label>Address configuration<select value={address} onChange={(event)=>setAddress(event.target.value)}><option value="0">Tinkercad example: 0</option><option value="0x27">Common example: 0x27</option><option value="0x3F">Common example: 0x3F</option><option value="0x20">PCF8574 range start: 0x20</option><option value="0x38">PCF8574A range start: 0x38</option></select></label>
+          <label>Display message<input maxLength={16} value={message} onChange={(event)=>setMessage(event.target.value.toUpperCase())}/></label>
+          <div className="w5-pin-note"><b>BUS PINS</b><span>{uno?'SDA A4 · SCL A5':'SDA/SCL are board-specific'}</span><small>Check backpack supply and pull-up voltage.</small></div>
+          <div className="i2c-address-note"><b>COMMON BACKPACK ADDRESSES</b><span>PCF8574: often 0x20–0x27 · PCF8574A: often 0x38–0x3F</span><small>0x27 and 0x3F are common examples, not guarantees. A0–A2 solder jumpers and module variant affect the address.</small></div>
+        </div>
+        <div className="i2c-simulator"><div className="bus-wire"><i/>SDA<i/>SCL<i/></div><div className="lcd-bezel"><div className="lcd-glass"><div>{message.slice(0,16).padEnd(16,' ')}</div><div>{`ADDR ${address}`.slice(0,16).padEnd(16,' ')}</div></div></div><div className="address-warning"><Radio size={16}/><span>{address==='0'?'Simulator address/index 0 is specific to the supplied Tinkercad library.':'Selected address is an example; scan the physical bus to identify the actual backpack.'}</span></div></div>
+      </div>
+      <section className="i2c-scanner" aria-labelledby="i2c-scanner-title">
+        <div className="i2c-scanner__heading"><div><span>HARDWARE TIP / SERIAL SCANNER</span><h2 id="i2c-scanner-title">Find the address on your bus.</h2><p>Upload this sketch with the LCD connected, then open Serial Monitor at 9600 baud. The scanner reports each device that acknowledges.</p></div><button className="i2c-copy-button" type="button" onClick={copyScanner}><Copy size={15}/>{copied?'COPIED':'COPY CODE'}</button></div>
+        <pre><code>{scannerCode}</code></pre>
+        <p className="i2c-scanner__note">Uno R3 uses SDA=A4 and SCL=A5. For ESP32, initialize Wire with the exact board's SDA/SCL pins before scanning. If multiple I2C devices are connected, the scan lists all responders; disconnect others to isolate the LCD. No response can also mean wiring, power, pull-up, or ground problems—not just a wrong address.</p>
+      </section>
+    </div>
+  );
 }
 
 function HBridgeLab() {
@@ -213,25 +265,46 @@ function Welcome({onStart,addPoints}:{onStart:()=>void;addPoints:(amount:number)
 }
 
 function Agenda() {
-  const sessions=[['00:00–00:50','Parallel LCD','Pin map, contrast, cursor, changing field'],['00:50–01:45','I2C LCD','SDA/SCL, address caveat, bus compatibility'],['01:45–01:55','BREAK','Short reset'],['01:55–03:25','H-bridge','Truth table, enable/PWM, load current, supply review'],['03:25–03:35','BREAK','Prepare integration station'],['03:35–04:45','Tinkercad + code','Complete LCD, I2C, motor stations and trace loop behavior'],['04:45–06:45','Integration challenge','Block diagram, state table, trade-off and evidence']];
-  return <div className="w5-agenda"><Heading slide={1} eyebrow="TODAY / 06:45 TOTAL" title="Displays, drivers, and integration." subtitle="Theory pauses between simulation stations; teams use the results to defend a system architecture."/><div className="w5-agenda-list">{sessions.map(([time,title,detail],index)=><div className={`w5-agenda-row ${title==='BREAK'?'is-break':''}`} key={title}><span>{String(index+1).padStart(2,'0')}</span><b>{time}</b><strong>{title}</strong><small>{detail}</small></div>)}</div><p className="w3-callout"><Clock3 size={16}/> Do not build the 9 V battery motor circuit as drawn; physical work requires tutor-approved supply and load ratings.</p></div>;
+  const sessions = [
+    ['00:00–00:50', 'Parallel LCD', 'Pin map, contrast, cursor, changing field'],
+    ['00:50–01:45', 'I2C LCD', 'SDA/SCL, address caveat, bus compatibility'],
+    ['01:45–01:55', 'BREAK', 'Short reset'],
+    ['01:55–03:25', 'H-bridge', 'Truth table, enable/PWM, load current, supply review'],
+    ['03:25–03:35', 'BREAK', 'Prepare integration station'],
+    ['03:35–04:45', 'Tinkercad + code', 'Complete LCD, I2C, motor stations and trace loop behavior'],
+    ['04:45–06:45', 'Integration challenge', 'Block diagram, state table, trade-off and evidence'],
+  ];
+  return (
+    <div className="w5-agenda">
+      <Heading slide={1} eyebrow="TODAY / 06:45 TOTAL" title="Displays, drivers, and integration." subtitle="Theory pauses between simulation stations; teams use the results to defend a system architecture." />
+      <div className="w5-agenda-list">{sessions.map(([time, title, detail], index) => <div className={`w5-agenda-row ${title === 'BREAK' ? 'is-break' : ''}`} key={title}><span>{String(index + 1).padStart(2, '0')}</span><b>{time}</b><strong>{title}</strong><small>{detail}</small></div>)}</div>
+      <p className="w3-callout"><Clock3 size={16} /> Do not build the 9 V battery motor circuit as drawn; physical work requires tutor-approved supply and load ratings.</p>
+    </div>
+  );
 }
 
-type ConceptProps={slide:number;eyebrow:string;title:string;subtitle:string;tone:Tone;visual:string;points:[string,string,string][];takeaway:string};
-function ConceptSlide({slide,eyebrow,title,subtitle,tone,visual,points,takeaway}:ConceptProps) {
-  return <div className="w5-concept"><div className="w5-concept__head"><Heading slide={slide} eyebrow={eyebrow} title={title} subtitle={subtitle} tone={tone}/><span>{slideDurations[slide]} MIN</span></div><div className="w5-concept__body"><div className="w5-points">{points.map(([head,body,example],index)=><article className="w5-point" key={head}><span>0{index+1}</span><div><h2>{head}</h2><p>{body}</p><small>{example}</small></div></article>)}</div><ConceptVisual kind={visual}/></div><div className="w5-takeaway"><Lightbulb size={17}/><span>TAKEAWAY</span><p>{takeaway}</p></div></div>;
+type ConceptProps = { slide: number; eyebrow: string; title: string; subtitle: string; tone: Tone; visual: string; points: [string, string, string][]; takeaway: string };
+
+function ConceptSlide({ slide, eyebrow, title, subtitle, tone, visual, points, takeaway }: ConceptProps) {
+  return (
+    <div className="w5-concept">
+      <div className="w5-concept__head"><Heading slide={slide} eyebrow={eyebrow} title={title} subtitle={subtitle} tone={tone} /><span>{slideDurations[slide]} MIN</span></div>
+      <div className="w5-concept__body"><div className="w5-points">{points.map(([head, body, example], index) => <article className="w5-point" key={head}><span>0{index + 1}</span><div><h2>{head}</h2><p>{body}</p><small>{example}</small></div></article>)}</div><ConceptVisual kind={visual} /></div>
+      <div className="w5-takeaway"><Lightbulb size={17} /><span>TAKEAWAY</span><p>{takeaway}</p></div>
+    </div>
+  );
 }
 
 function ConceptVisual({ kind }: { kind: string }) {
-  if(kind==='system'||kind==='flow') return <figure className="w5-visual"><div className="w5-visual__heading">SYSTEM CONTRACT <i>W05</i></div><div className="w5-flow">{[['SENSOR','value'],['VALIDATE','fresh?'],['STATE','decision'],['DISPLAY','status'],['DRIVER','load']].map(([title,sub],index)=><div className={`w5-flow-node w5-flow-node--${index}`} key={title}><b>{title}</b><small>{sub}</small></div>)}</div><figcaption>Keep measurement, state, status, and load control distinct.</figcaption></figure>;
-  if(kind==='status') return <figure className="w5-visual"><div className="w5-visual__heading">USER STATUS <i>W05</i></div><div className="lcd-face"><div>MOISTURE: OK</div><div>MOTOR: OFF</div></div><figcaption>Short, labelled status beats an unexplained raw value.</figcaption></figure>;
-  if(kind==='parallel') return <figure className="w5-visual"><div className="w5-visual__heading">PARALLEL / 4-BIT <i>W05</i></div><div className="lcd-pin-map"><span>UNO</span><i>RS / E / D4–D7</i><b>6 GPIO SIGNALS</b><small>+ power · ground · VO contrast</small></div><figcaption>Constructor order and wire order must agree.</figcaption></figure>;
-  if(kind==='cursor') return <figure className="w5-visual"><div className="w5-visual__heading">16 × 2 COORDINATES <i>W05</i></div><div className="lcd-face lcd-face--cursor"><div>COL 0123456789ABCDEF</div><div>ROW 0 STATUS <i/></div></div><figcaption>Rows are 0 and 1; columns are 0 through 15.</figcaption></figure>;
-  if(kind==='i2c') return <figure className="w5-visual"><div className="w5-visual__heading">I2C TWO-WIRE BUS <i>W05</i></div><div className="i2c-bus"><span>CONTROLLER</span><div><i>SDA / DATA</i><i>SCL / CLOCK</i></div><span>LCD BACKPACK / ADDRESS</span></div><figcaption>Shared bus lines; module address and pull-up levels are hardware details.</figcaption></figure>;
-  if(kind==='address') return <figure className="w5-visual"><div className="w5-visual__heading">MODEL ≠ PHYSICAL ADDRESS <i>W05</i></div><div className="address-compare"><div><small>TINKERCAD EXAMPLE</small><b>0</b><span>library argument</span></div><ArrowRight size={18}/><div><small>REAL BACKPACK</small><b>CHECK</b><span>scan / datasheet</span></div></div><figcaption>Do not assume the simulator constructor value is universal.</figcaption></figure>;
-  if(kind==='compare') return <figure className="w5-visual"><div className="w5-visual__heading">SIGNAL COUNT / TRADE-OFF <i>W05</i></div><div className="compare-bars"><div><span>PARALLEL</span><i><b style={{width:'86%'}}/></i><small>~6 control/data GPIOs</small></div><div><span>I2C</span><i><b style={{width:'30%'}}/></i><small>2 bus signals + address setup</small></div></div><figcaption>Bus wiring is simpler; setup and compatibility still matter.</figcaption></figure>;
-  if(kind==='bridge'||kind==='power') return <figure className="w5-visual"><div className="w5-visual__heading">CONTROL PATH / LOAD PATH <i>W05</i></div><div className="bridge-map"><div><span>UNO GPIO</span><b>IN1 / IN2 / EN</b></div><ArrowRight size={18}/><div><span>H-BRIDGE</span><b>OUTPUT A / B</b></div><ArrowRight size={18}/><div><span>MOTOR SUPPLY</span><b>LOAD CURRENT</b></div></div><figcaption>GPIO selects driver state; the separate rated supply delivers motor current.</figcaption></figure>;
-  if(kind==='truth') return <figure className="w5-visual"><div className="w5-visual__heading">H-BRIDGE INPUTS <i>W05</i></div><div className="motor-truth"><span>IN1</span><span>IN2</span><span>REQUEST</span><b>H</b><b>L</b><strong>Direction A</strong><b>L</b><b>H</b><strong>Direction B</strong><b>L</b><b>L</b><strong>Stop request*</strong></div><figcaption>*Exact stop/coast/brake behavior depends on the driver truth table.</figcaption></figure>;
-  if(kind==='enable') return <figure className="w5-visual"><div className="w5-visual__heading">ENABLE / PWM <i>W05</i></div><div className="enable-visual"><span>EN LOW<br/><small>disabled</small></span><div className="enable-wave"><i/></div><span>EN PWM<br/><small>modulated enable</small></span></div><figcaption>Driver and motor response depends on load, supply, and device limits.</figcaption></figure>;
-  return <figure className="w5-visual"><div className="w5-visual__heading">SAFE START <i>W05</i></div><div className="safe-start"><ShieldAlert size={27}/><span>RESET</span><ArrowRight size={17}/><b>OUTPUTS DISABLED</b><ArrowRight size={17}/><span>VALID STATE</span></div><figcaption>Choose a defined startup and fault response.</figcaption></figure>;
+  if (kind === 'system' || kind === 'flow') return <figure className="w5-visual"><div className="w5-visual__heading">SYSTEM CONTRACT <i>W05</i></div><div className="w5-flow">{[['SENSOR', 'value'], ['VALIDATE', 'fresh?'], ['STATE', 'decision'], ['DISPLAY', 'status'], ['DRIVER', 'load']].map(([title, sub], index) => <div className={`w5-flow-node w5-flow-node--${index}`} key={title}><b>{title}</b><small>{sub}</small></div>)}</div><figcaption>Keep measurement, state, status, and load control distinct.</figcaption></figure>;
+  if (kind === 'status') return <figure className="w5-visual"><div className="w5-visual__heading">USER STATUS <i>W05</i></div><div className="lcd-face"><div>MOISTURE: OK</div><div>MOTOR: OFF</div></div><figcaption>Short, labelled status beats an unexplained raw value.</figcaption></figure>;
+  if (kind === 'parallel') return <figure className="w5-visual"><div className="w5-visual__heading">PARALLEL / 4-BIT <i>W05</i></div><div className="lcd-pin-map"><span>UNO</span><i>RS / E / D4–D7</i><b>6 GPIO SIGNALS</b><small>+ power · ground · VO contrast</small></div><figcaption>Constructor order and wire order must agree.</figcaption></figure>;
+  if (kind === 'cursor') return <figure className="w5-visual"><div className="w5-visual__heading">16 × 2 COORDINATES <i>W05</i></div><div className="lcd-face lcd-face--cursor"><div>COL 0123456789ABCDEF</div><div>ROW 0 STATUS <i /></div></div><figcaption>Rows are 0 and 1; columns are 0 through 15.</figcaption></figure>;
+  if (kind === 'i2c') return <figure className="w5-visual"><div className="w5-visual__heading">I2C TWO-WIRE BUS <i>W05</i></div><div className="i2c-bus"><span>CONTROLLER</span><div><i>SDA / DATA</i><i>SCL / CLOCK</i></div><span>LCD BACKPACK / ADDRESS</span></div><figcaption>Shared bus lines; module address and pull-up levels are hardware details.</figcaption></figure>;
+  if (kind === 'address') return <figure className="w5-visual"><div className="w5-visual__heading">MODEL ≠ PHYSICAL ADDRESS <i>W05</i></div><div className="address-compare"><div><small>TINKERCAD EXAMPLE</small><b>0</b><span>library argument</span></div><ArrowRight size={18} /><div><small>REAL BACKPACK</small><b>CHECK</b><span>scan / datasheet</span></div></div><figcaption>Do not assume the simulator constructor value is universal.</figcaption></figure>;
+  if (kind === 'compare') return <figure className="w5-visual"><div className="w5-visual__heading">SIGNAL COUNT / TRADE-OFF <i>W05</i></div><div className="compare-bars"><div><span>PARALLEL</span><i><b style={{ width: '86%' }} /></i><small>~6 control/data GPIOs</small></div><div><span>I2C</span><i><b style={{ width: '30%' }} /></i><small>2 bus signals + address setup</small></div></div><figcaption>Bus wiring is simpler; setup and compatibility still matter.</figcaption></figure>;
+  if (kind === 'bridge' || kind === 'power') return <figure className="w5-visual"><div className="w5-visual__heading">CONTROL PATH / LOAD PATH <i>W05</i></div><div className="bridge-map"><div><span>UNO GPIO</span><b>IN1 / IN2 / EN</b></div><ArrowRight size={18} /><div><span>H-BRIDGE</span><b>OUTPUT A / B</b></div><ArrowRight size={18} /><div><span>MOTOR SUPPLY</span><b>LOAD CURRENT</b></div></div><figcaption>GPIO selects driver state; the separate rated supply delivers motor current.</figcaption></figure>;
+  if (kind === 'truth') return <figure className="w5-visual"><div className="w5-visual__heading">H-BRIDGE INPUTS <i>W05</i></div><div className="motor-truth"><span>IN1</span><span>IN2</span><span>REQUEST</span><b>H</b><b>L</b><strong>Direction A</strong><b>L</b><b>H</b><strong>Direction B</strong><b>L</b><b>L</b><strong>Stop request*</strong></div><figcaption>*Exact stop/coast/brake behavior depends on the driver truth table.</figcaption></figure>;
+  if (kind === 'enable') return <figure className="w5-visual"><div className="w5-visual__heading">ENABLE / PWM <i>W05</i></div><div className="enable-visual"><span>EN LOW<br /><small>disabled</small></span><div className="enable-wave"><i /></div><span>EN PWM<br /><small>modulated enable</small></span></div><figcaption>Driver and motor response depends on load, supply, and device limits.</figcaption></figure>;
+  return <figure className="w5-visual"><div className="w5-visual__heading">SAFE START <i>W05</i></div><div className="safe-start"><ShieldAlert size={27} /><span>RESET</span><ArrowRight size={17} /><b>OUTPUTS DISABLED</b><ArrowRight size={17} /><span>VALID STATE</span></div><figcaption>Choose a defined startup and fault response.</figcaption></figure>;
 }
