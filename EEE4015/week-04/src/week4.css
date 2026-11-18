@@ -223,3 +223,71 @@
   .keypad-grid { max-width:270px; }.keypad-pin-row { font-size:7px; }
 }
 @media (prefers-reduced-motion: reduce) { .w4-hero__wave i { animation:none !important; } }
+
+/* Keypad matrix scan visualizer */
+.keypad-scan-lab { display:flex; flex-direction:column; gap:13px; }
+.keypad-scan-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 13px; border:1px solid var(--line); border-radius:5px; background:rgba(25,39,39,.8); }
+.keypad-scan-controls .segmented-control { max-width:100%; }
+.scan-transport { display:flex; align-items:center; flex-wrap:wrap; gap:7px; }
+.scan-transport .primary-button { white-space:nowrap; }
+.scan-step { min-height:36px; display:inline-flex; align-items:center; gap:6px; padding:0 10px; border:1px solid #53635c; border-radius:4px; background:transparent; color:var(--blue); font:700 9px var(--font-display); cursor:pointer; }
+.scan-step:disabled { opacity:.4; cursor:not-allowed; }
+.scan-speed { display:flex; align-items:center; gap:6px; color:#98a69d; font:700 8px var(--font-display); }
+.scan-speed select { min-height:32px; padding:0 7px; border:1px solid #52625b; border-radius:3px; background:#172323; color:var(--paper); font:700 8px var(--font-display); }
+.scan-circuit { display:grid; grid-template-columns:150px minmax(0,1fr); gap:12px; align-items:stretch; padding:13px; border:1px solid var(--line); border-radius:6px; background:rgba(25,39,39,.87); }
+.scan-side { display:flex; flex-direction:column; gap:7px; padding-top:31px; }
+.scan-axis-label { min-height:23px; color:#91a097; font:700 8px var(--font-display); letter-spacing:.08em; }
+.scan-pin { min-height:45px; display:grid; grid-template-columns:30px 34px 1fr; align-items:center; gap:4px; padding:5px 6px; border:1px solid #3e514a; border-radius:3px; background:rgba(12,19,19,.45); color:#aab8af; }
+.scan-pin b { color:#c8d3c9; font:700 9px var(--font-display); }
+.scan-pin small { color:#98a69d; font:8px Consolas,monospace; }
+.scan-pin i { color:#829087; font:700 7px var(--font-display); font-style:normal; text-align:right; }
+.scan-pin.is-driven { border-color:var(--lime); background:rgba(215,250,88,.13); box-shadow:0 0 12px rgba(215,250,88,.12); }
+.scan-pin.is-driven b,.scan-pin.is-driven i { color:var(--lime); }
+.scan-pin.is-sensed { border-color:var(--coral); background:rgba(255,128,107,.1); }
+.scan-pin.is-sensed b,.scan-pin.is-sensed i { color:var(--coral); }
+.scan-matrix { min-width:0; display:flex; flex-direction:column; gap:7px; }
+.scan-columns { min-height:54px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; }
+.scan-pin--column { min-height:50px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; padding:3px; }
+.scan-pin--column i { text-align:center; }
+.keypad-grid--scan { width:100%; max-width:none; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; margin:0; }
+.keypad-grid--scan button { min-width:0; aspect-ratio:1.55; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:2px; border-color:#4b5c55; background:#172322; font-size:15px; transition:background 120ms ease,border-color 120ms ease,box-shadow 120ms ease; }
+.keypad-grid--scan button small { color:#77877e; font:7px Consolas,monospace; }
+.keypad-grid--scan button.is-scanned { border-color:rgba(215,250,88,.52); background:rgba(215,250,88,.07); }
+.keypad-grid--scan button.is-held { box-shadow:inset 0 0 0 2px var(--blue); }
+.keypad-grid--scan button.is-detected { border-color:var(--coral); background:rgba(255,128,107,.19); color:#ffd2c9; box-shadow:0 0 14px rgba(255,128,107,.3),inset 0 0 0 2px var(--coral); }
+.keypad-grid--scan button.is-detected small { color:#ffb1a3; }
+.scan-readout { display:grid; grid-template-columns:minmax(0,.9fr) 24px minmax(0,1fr) minmax(0,1.1fr); align-items:center; gap:10px; padding:11px 13px; border:1px solid var(--line); border-radius:5px; background:rgba(12,19,19,.5); }
+.scan-readout>div:not(.scan-result) { min-width:0; display:flex; flex-direction:column; gap:5px; }
+.scan-readout>div>span,.scan-result>span { color:#89978e; font:700 8px var(--font-display); letter-spacing:.08em; }
+.scan-readout>div>b,.scan-result>b { color:var(--lime); font:700 11px var(--font-display); overflow-wrap:anywhere; }
+.scan-readout>svg { color:var(--blue); }
+.scan-readout>div>b.is-low { color:var(--coral); }
+.scan-result { min-width:0; display:flex; flex-direction:column; gap:5px; padding:8px 10px; border-left:2px solid #56665d; background:rgba(255,255,255,.025); }
+.scan-result.is-detected { border-color:var(--coral); background:rgba(255,128,107,.08); }
+.scan-result.is-detected>b { color:var(--coral); }
+.scan-explainer { padding:10px 13px; border-left:2px solid var(--blue); background:rgba(125,200,235,.045); }
+.scan-explainer>b { color:var(--blue); font:700 9px var(--font-display); letter-spacing:.1em; }
+.scan-explainer p { margin:5px 0; color:#c3cec5; font-size:11px; line-height:1.4; }
+.scan-explainer small { color:#8f9d94; font-size:9px; line-height:1.4; }
+@media (max-width:900px) {
+  .keypad-scan-controls { align-items:flex-start; flex-direction:column; }
+  .scan-circuit { grid-template-columns:125px minmax(0,1fr); }
+}
+@media (max-width:600px) {
+  .scan-circuit { grid-template-columns:82px minmax(0,1fr); gap:6px; padding:8px; }
+  .scan-side { gap:6px; padding-top:27px; }
+  .scan-pin { min-height:49px; grid-template-columns:1fr; justify-items:center; gap:1px; padding:2px; }
+  .scan-pin b { font-size:8px; }.scan-pin small { font-size:7px; }.scan-pin i { font-size:6px; text-align:center; }
+  .scan-columns { min-height:58px; gap:4px; }
+  .scan-pin--column { min-height:55px; }
+  .keypad-grid--scan { gap:4px; }
+  .keypad-grid--scan button { aspect-ratio:1.1; font-size:12px; }
+  .keypad-grid--scan button small { font-size:6px; }
+  .scan-readout { grid-template-columns:1fr 16px 1fr; gap:6px; padding:9px; }
+  .scan-result { grid-column:1/-1; }
+  .scan-readout>div>b { font-size:9px; }
+  .scan-transport { width:100%; }
+  .scan-transport .scan-speed { margin-left:auto; }
+  .keypad-scan-controls>.segmented-control { width:100%; }
+  .keypad-scan-controls>.segmented-control button { flex:1; white-space:normal; line-height:1.25; }
+}

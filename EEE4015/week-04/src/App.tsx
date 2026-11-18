@@ -159,8 +159,46 @@ function ConceptVisual({ kind }: { kind: string }) {
 }
 
 function KeypadMap() {
-  const [selected, setSelected] = useState<{ row: number; col: number } | null>(null);
-  return <div className="w4-keypad-map"><Heading slide={5} eyebrow="INTERACTIVE MAP / ROW × COLUMN" title="Press a virtual key. Trace its wiring." subtitle="The local model connects the key position to its matrix row, column pin, and character map." tone="blue"/><div className="keypad-map-layout"><div className="keypad-board"><div className="keypad-pin-row">{keypadRows.map((pin,index)=><span key={pin}>R{index+1} / D{pin}</span>)}</div><div className="keypad-grid">{keyMap.flatMap((row,rowIndex)=>row.map((key,colIndex)=><button key={`${rowIndex}-${colIndex}`} className={selected?.row===rowIndex&&selected.col===colIndex?'is-selected':''} onClick={()=>setSelected({row:rowIndex,col:colIndex})} aria-label={`Key ${key}, row ${rowIndex+1}, column ${colIndex+1}`}>{key}</button>))}</div><div className="keypad-pin-row keypad-pin-row--columns">{keypadColumns.map((pin,index)=><span key={pin}>C{index+1} / D{pin}</span>)}</div></div><div className="keypad-inspector"><span>SELECTED POSITION</span>{selected?<><strong>KEY “{keyMap[selected.row][selected.col]}”</strong><p>Row {selected.row+1} / D{keypadRows[selected.row]}</p><p>Column {selected.col+1} / D{keypadColumns[selected.col]}</p><small>KEY_MAP[{selected.row}][{selected.col}] → '{keyMap[selected.row][selected.col]}'</small></>:<p>Select a key to inspect its row and column.</p>}</div></div></div>;
+  const [direction, setDirection] = useState<'rows' | 'columns'>('rows');
+  const [activeLine, setActiveLine] = useState(0);
+  const [pressedKey, setPressedKey] = useState<{ row: number; col: number } | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [scanMs, setScanMs] = useState(700);
+  useEffect(() => {
+    if (!isRunning) return;
+    const timer = window.setInterval(() => setActiveLine((line) => (line + 1) % 4), scanMs);
+    return () => window.clearInterval(timer);
+  }, [isRunning, scanMs]);
+  const isMatch = pressedKey !== null && (direction === 'rows' ? pressedKey.row === activeLine : pressedKey.col === activeLine);
+  const sensedIndex = isMatch ? (direction === 'rows' ? pressedKey!.col : pressedKey!.row) : -1;
+  const activeName = direction === 'rows' ? `ROW ${activeLine + 1} / D${keypadRows[activeLine]}` : `COLUMN ${activeLine + 1} / D${keypadColumns[activeLine]}`;
+  const sensedName = isMatch ? direction === 'rows' ? `COLUMN ${sensedIndex + 1} / D${keypadColumns[sensedIndex]}` : `ROW ${sensedIndex + 1} / D${keypadRows[sensedIndex]}` : 'NONE / ALL INPUTS HIGH';
+  const step = () => setActiveLine((line) => (line + 1) % 4);
+  return (
+    <div className="w4-keypad-map">
+      <Heading slide={5} eyebrow="INTERACTIVE MAP / MULTIPLEX SCAN" title="Drive one line. Read the opposing pins." subtitle="Run a row scan or column scan. Hold a virtual key and watch its intersection become detectable only when that scan line is active." tone="blue" />
+      <div className="keypad-scan-lab">
+        <div className="keypad-scan-controls">
+          <div className="segmented-control"><button className={direction === 'rows' ? 'is-active' : ''} onClick={() => { setDirection('rows'); setActiveLine(0); }}>SCAN ROWS → READ COLUMNS</button><button className={direction === 'columns' ? 'is-active' : ''} onClick={() => { setDirection('columns'); setActiveLine(0); }}>SCAN COLUMNS → READ ROWS</button></div>
+          <div className="scan-transport"><button className="primary-button primary-button--small" onClick={() => setIsRunning((running) => !running)}>{isRunning ? <Pause size={15} /> : <Play size={15} />}{isRunning ? 'PAUSE SCAN' : 'START SCAN'}</button><button className="scan-step" onClick={step} disabled={isRunning}><ArrowRight size={15} /> STEP LINE</button><label className="scan-speed">STEP <select value={scanMs} onChange={(event) => setScanMs(Number(event.target.value))}><option value={1100}>SLOW</option><option value={700}>NORMAL</option><option value={350}>FAST</option></select></label></div>
+        </div>
+        <div className={`scan-circuit scan-circuit--${direction}`}>
+          <div className="scan-side scan-side--rows"><span className="scan-axis-label">ROWS / D4–D7</span>{keypadRows.map((pin, index) => <div key={pin} className={`scan-pin ${direction === 'rows' && activeLine === index ? 'is-driven' : ''} ${direction === 'columns' && isMatch && sensedIndex === index ? 'is-sensed' : ''}`}><b>R{index + 1}</b><small>D{pin}</small><i>{direction === 'rows' && activeLine === index ? 'DRIVE LOW' : direction === 'columns' && isMatch && sensedIndex === index ? 'READ LOW' : 'HIGH / IDLE'}</i></div>)}</div>
+          <div className="scan-matrix">
+            <div className="scan-columns">{keypadColumns.map((pin, index) => <div key={pin} className={`scan-pin scan-pin--column ${direction === 'columns' && activeLine === index ? 'is-driven' : ''} ${direction === 'rows' && isMatch && sensedIndex === index ? 'is-sensed' : ''}`}><b>C{index + 1}</b><small>D{pin}</small><i>{direction === 'columns' && activeLine === index ? 'DRIVE LOW' : direction === 'rows' && isMatch && sensedIndex === index ? 'READ LOW' : 'HIGH / IDLE'}</i></div>)}</div>
+            <div className="keypad-grid keypad-grid--scan">{keyMap.flatMap((row, rowIndex) => row.map((key, colIndex) => {
+              const isHeld = pressedKey?.row === rowIndex && pressedKey.col === colIndex;
+              const isActive = direction === 'rows' ? activeLine === rowIndex : activeLine === colIndex;
+              const isDetected = isHeld && isActive;
+              return <button key={`${rowIndex}-${colIndex}`} className={`${isHeld ? 'is-held' : ''} ${isActive ? 'is-scanned' : ''} ${isDetected ? 'is-detected' : ''}`} aria-pressed={isHeld} aria-label={`${isHeld ? 'Release' : 'Hold'} key ${key}, row ${rowIndex + 1}, column ${colIndex + 1}${isDetected ? ', detected' : ''}`} onClick={() => setPressedKey(isHeld ? null : { row: rowIndex, col: colIndex })}>{key}<small>R{rowIndex + 1}·C{colIndex + 1}</small></button>;
+            }))}</div>
+          </div>
+        </div>
+        <div className="scan-readout" aria-live="polite"><div><span>SCAN PHASE</span><b>{activeName}</b></div><ArrowRight size={18}/><div><span>OPPOSING INPUT</span><b className={isMatch ? 'is-low' : ''}>{sensedName}</b></div><div className={`scan-result ${isMatch ? 'is-detected' : ''}`}><span>{pressedKey ? `HELD KEY ${keyMap[pressedKey.row][pressedKey.col]}` : 'NO KEY HELD'}</span><b>{isMatch ? `DETECTED: ${keyMap[pressedKey!.row][pressedKey!.col]}` : pressedKey ? 'WAIT FOR ACTIVE LINE' : 'NO_KEY'}</b></div></div>
+        <div className="scan-explainer"><b>{direction === 'rows' ? 'ROW SCAN' : 'COLUMN SCAN'}</b><p>{direction === 'rows' ? `Drive R${activeLine + 1} (D${keypadRows[activeLine]}) LOW, then read all four column inputs. A held key in that row pulls its matching column LOW.` : `Drive C${activeLine + 1} (D${keypadColumns[activeLine]}) LOW, then read all four row inputs. A held key in that column pulls its matching row LOW.`}</p><small>Conceptual active-LOW scan model with inactive lines held HIGH. Real keypad libraries handle scan timing, pin modes, and switch debounce.</small></div>
+      </div>
+    </div>
+  );
 }
 
 function KeypadLab() {
