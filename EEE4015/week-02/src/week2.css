@@ -1,0 +1,257 @@
+/* Week 2 interactive circuit and resistor tools */
+.lab-component-heading { margin: 0 0 21px; max-width: 760px; }
+.lab-component-heading h2 { margin: 11px 0 8px; color: var(--paper); font: 750 34px/1.05 var(--font-display); }
+.lab-component-heading p { max-width: 700px; margin: 0; color: #aebbb2; font-size: 14px; line-height: 1.5; }
+.quiz-label { color: #95a49b; font: 700 9px var(--font-display); letter-spacing: .13em; text-transform: uppercase; }
+.bands-layout, .band-quiz-layout, .led-reference-layout, .iv-layout { min-height: 100%; padding: 10px 0; }
+.bands-panel, .band-quiz-card, .iv-chart-card, .iv-controls, .digital-sim-card, .bench-sim, .sim-controls, .overcurrent-panel, .debug-card, .challenge-board, .lab-controls, .circuit-model { border: 1px solid var(--line); border-radius: 6px; background: rgba(25, 39, 39, .87); }
+.bands-panel { padding: 20px 24px; }
+.bands-mode { display: flex; justify-content: space-between; align-items: center; gap: 16px; color: var(--muted); font: 700 9px var(--font-display); letter-spacing: .13em; }
+.segmented-control { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 4px; background: rgba(9, 15, 16, .4); }
+.segmented-control button { min-height: 34px; padding: 0 12px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: #9eada4; font: 700 9px var(--font-display); letter-spacing: .08em; cursor: pointer; }
+.segmented-control button.is-active { border-color: rgba(215,250,88,.35); background: rgba(215,250,88,.11); color: var(--lime); }
+.resistor-illustration { height: 98px; display: flex; justify-content: center; align-items: center; margin: 10px auto 18px; }
+.resistor-lead { width: min(16vw, 155px); height: 3px; background: #abb9b5; }
+.resistor-body { width: min(52vw, 420px); height: 56px; display: flex; justify-content: space-evenly; align-items: stretch; position: relative; overflow: hidden; border: 1px solid rgba(238,226,194,.37); border-radius: 18px; background: linear-gradient(180deg,#c9b895,#a79270 48%,#7f705c); box-shadow: inset 0 3px 7px rgba(255,255,255,.2), 0 5px 12px rgba(0,0,0,.2); }
+.resistor-body i { position: absolute; inset: 4px auto 4px 12px; width: 7px; border-radius: 3px; background: rgba(255,255,255,.24); }
+.resistor-body > span { width: 15px; flex: 0 0 15px; border-left: 1px solid rgba(0,0,0,.24); border-right: 1px solid rgba(255,255,255,.13); }
+.band-selectors { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 11px; }
+.band-selectors label, .sim-controls label, .iv-controls label, .overcurrent-top label, .challenge-inputs label, .lab-controls label { display: flex; flex-direction: column; gap: 7px; color: #aebbb2; font: 700 9px var(--font-display); letter-spacing: .08em; }
+.band-selectors select, .sim-controls select, .iv-controls select, .overcurrent-top select, .challenge-inputs select, .lab-controls select, .input-with-unit input, .sim-controls input[type="number"], .iv-controls input[type="range"], .sim-controls input[type="range"] { width: 100%; min-height: 39px; padding: 0 10px; border: 1px solid #52625b; border-radius: 4px; background: #172323; color: var(--paper); font: 500 13px "Aptos", sans-serif; }
+.band-result { display: grid; grid-template-columns: 1.1fr .75fr 1.3fr; gap: 10px; margin-top: 17px; padding: 15px; border: 1px solid rgba(215,250,88,.22); background: rgba(215,250,88,.045); }
+.band-result > div { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.band-result span, .overcurrent-facts span { color: #91a097; font: 700 8px var(--font-display); letter-spacing: .1em; }
+.band-result strong { color: var(--lime); font: 700 18px var(--font-display); overflow-wrap: anywhere; }
+.model-disclaimer { margin: 12px 0 0; color: #8d9b93; font-size: 10px; line-height: 1.5; }
+.mini-resistor { height: 72px; display: flex; justify-content: center; align-items: center; gap: 28px; margin-bottom: 12px; position: relative; }
+.mini-resistor::before { content: ""; position: absolute; width: min(70%,430px); height: 28px; border-radius: 10px; background: #a89370; }
+.mini-resistor::after { content: ""; position: absolute; width: min(92%,560px); height: 3px; background: #aab8b4; z-index: 0; }
+.mini-resistor span { width: 12px; height: 40px; position: relative; z-index: 1; }
+.band-quiz-card { max-width: 780px; padding: 22px; }
+.debug-options { display: grid; gap: 8px; }
+.quiz-choice { min-height: 49px; display: flex; align-items: center; gap: 11px; padding: 8px 12px; border: 1px solid #52625b; border-radius: 4px; background: #1b2b2a; color: #dce5d8; text-align: left; font-size: 12px; cursor: pointer; }
+.quiz-choice > span { width: 22px; height: 22px; display: grid; flex: 0 0 22px; place-items: center; border: 1px solid #64716a; border-radius: 3px; color: #aab6ab; font: 700 10px var(--font-display); }
+.quiz-choice svg { margin-left: auto; }
+.quiz-choice.is-correct { border-color: var(--lime); color: var(--lime); }
+.quiz-choice.is-wrong { border-color: var(--coral); color: var(--coral); }
+.debug-feedback { margin-top: 14px; color: #bdc9bf; font-size: 12px; line-height: 1.5; }
+.led-reference-table { border-top: 1px solid var(--line); }
+.led-reference-row { min-height: 49px; display: grid; grid-template-columns: 1.1fr 1fr .8fr 1.5fr; align-items: center; gap: 12px; padding: 7px 12px; border-bottom: 1px solid var(--line); color: #dce5d8; font-size: 12px; }
+.led-reference-row--head { min-height: 36px; color: #91a097; font: 700 8px var(--font-display); letter-spacing: .1em; }
+.led-reference-row > span:first-child { display: flex; align-items: center; gap: 9px; }
+.led-reference-row i { width: 12px; height: 12px; border: 1px solid rgba(255,255,255,.32); border-radius: 50%; box-shadow: 0 0 12px color-mix(in srgb, currentColor, transparent 75%); }
+.led-reference-row small { color: #8e9c94; font-size: 10px; }
+.iv-layout-grid { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(220px,.6fr); gap: 14px; }
+.iv-chart-card, .iv-controls { min-width: 0; padding: 14px; }
+.iv-chart-card svg { display: block; width: 100%; height: auto; }
+.plot-bg { fill: rgba(7,14,15,.55); stroke: var(--line); }
+.grid-line { stroke: rgba(235,244,224,.1); stroke-width: 1; }
+.axis-label { fill: #91a097; font: 10px "Aptos", sans-serif; }
+.axis-title { fill: #aab8af; font: 700 9px "Bahnschrift", sans-serif; }
+.iv-curve-line { fill: none; stroke: var(--coral); stroke-width: 3; }
+.load-line { fill: none; stroke: var(--blue); stroke-width: 2; stroke-dasharray: 6 5; }
+.iv-operating-point { fill: var(--lime); stroke: #f3f5e9; stroke-width: 2; }
+.chart-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; color: #aab8af; font-size: 10px; }
+.chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.chart-legend b { margin-left: auto; color: var(--lime); }
+.curve-key, .load-key { width: 15px; height: 2px; background: var(--coral); }
+.load-key { background: var(--blue); }
+.iv-controls { display: flex; flex-direction: column; gap: 15px; }
+.iv-controls label { font-size: 10px; }
+.iv-controls label b { color: var(--lime); }
+.iv-controls input[type="range"], .sim-controls input[type="range"] { min-height: auto; accent-color: var(--lime); }
+.tinkercad-layout, .digital-sim-layout, .resistor-lab-layout, .iv-layout, .overcurrent-layout, .debug-layout, .challenge-layout, .code-layout, .exit-layout { min-height: 100%; padding: 4px 0; }
+.tinkercad-grid { display: grid; grid-template-columns: minmax(0,1.55fr) minmax(220px,.45fr); gap: 14px; align-items: start; }
+.bench-sim { min-width: 0; padding: 12px; }
+.bench-sim svg { display: block; width: 100%; max-height: 390px; }
+.sim-toolbar { min-height: 37px; display: flex; justify-content: space-between; align-items: center; gap: 12px; color: #9eada4; font: 700 9px var(--font-display); letter-spacing: .1em; }
+.sim-power { min-height: 31px; padding: 0 11px; border: 1px solid #65726d; border-radius: 4px; background: transparent; color: #aab8af; font: 700 9px var(--font-display); cursor: pointer; }
+.sim-power.is-on { border-color: var(--lime); color: var(--lime); }
+.circuit-wire { fill: none; stroke: #9eada4; stroke-width: 3; }
+.circuit-wire--positive { stroke: var(--coral); }
+.circuit-wire--return { stroke: var(--blue); }
+.circuit-resistor { fill: #b7a17b; stroke: #e1d3b1; stroke-width: 1.5; }
+.diagram-dark-text { fill: #172323; font: 700 10px "Aptos", sans-serif; }
+.diagram-small { fill: #aab8af; font: 700 9px "Bahnschrift", sans-serif; letter-spacing: .08em; }
+.battery-outline { fill: #263638; stroke: #9baca4; stroke-width: 2; }
+.battery-text { fill: var(--paper); font: 700 18px "Bahnschrift", sans-serif; }
+.diagram-label { fill: #aab8af; font: 700 10px "Bahnschrift", sans-serif; }
+.bench-led { fill: transparent; stroke: #cbd6ce; stroke-width: 3; }
+.bench-led--on { filter: drop-shadow(0 0 8px currentColor); }
+.bench-light-rays { stroke: var(--lime); stroke-width: 2; }
+.sim-controls { display: flex; flex-direction: column; gap: 14px; padding: 15px; }
+.sim-controls label { font-size: 9px; }
+.sim-controls input[type="range"] { accent-color: var(--lime); }
+.sim-callout { padding: 11px; border-left: 2px solid var(--lime); background: rgba(215,250,88,.06); color: #c9d4c8; font-size: 11px; line-height: 1.4; }
+.sim-callout--warning { border-color: var(--coral); background: rgba(255,128,107,.07); }
+.sim-warning { margin: 12px 0 0; color: #b5c2b9; font-size: 11px; line-height: 1.5; }
+.simulation-link { display: inline-flex; align-items: center; gap: 8px; color: var(--blue); font: 700 9px var(--font-display); letter-spacing: .08em; text-decoration: none; }
+.simulation-link:hover { color: #c6ecff; }
+.digital-sim-layout, .overcurrent-layout, .debug-layout, .challenge-layout { display: grid; grid-template-columns: minmax(240px,.75fr) minmax(0,1.25fr); gap: 30px; align-items: center; }
+.digital-sim-card { padding: 17px; }
+.digital-sim-card > svg { display: block; width: 100%; max-height: 250px; margin: 10px 0; }
+.v-wire { fill: none; stroke: #95a69e; stroke-width: 3; }
+.v-switch-line { stroke: var(--lime); stroke-width: 4; }
+.v-node { fill: var(--lime); }
+.v-label, .v-small { fill: #aab8af; font: 700 9px "Bahnschrift", sans-serif; }
+.v-block rect { fill: #263638; stroke: #71847b; stroke-width: 1.5; }
+.v-block--lime rect { fill: rgba(215,250,88,.12); stroke: var(--lime); }
+.v-block--coral rect { fill: rgba(255,128,107,.12); stroke: var(--coral); }
+.v-block--blue rect { fill: rgba(125,200,235,.12); stroke: var(--blue); }
+.v-title { fill: var(--paper); font: 700 9px "Bahnschrift", sans-serif; }
+.v-sub { fill: #b7c4bb; font: 600 7px "Aptos", sans-serif; }
+.v-battery { fill: #263638; stroke: #a5b6ad; stroke-width: 2; }
+.v-arrow { fill: none; stroke: var(--lime); stroke-width: 2; }
+.v-ray { fill: none; stroke: var(--lime); stroke-width: 2; }
+.v-blue { fill: var(--blue); font: 700 9px "Bahnschrift", sans-serif; }
+.v-coral { fill: var(--coral); font: 700 9px "Bahnschrift", sans-serif; }
+.v-green { fill: var(--lime); font: 700 9px "Bahnschrift", sans-serif; }
+.v-card { fill: #172525; stroke: #65756d; stroke-width: 1.5; }
+.v-formula { fill: var(--paper); font: 700 15px "Bahnschrift", sans-serif; }
+.v-axis { fill: none; stroke: #91a39a; stroke-width: 2; }
+.v-safe { fill: rgba(215,250,88,.22); stroke: var(--lime); stroke-width: 1; }
+.v-warn { fill: rgba(255,128,107,.16); stroke: var(--coral); stroke-width: 1; }
+.v-resistor { fill: #b7a17b; stroke: #e1d3b1; stroke-width: 1.5; }
+.band--orange { fill: #ee8d38; }
+.band--brown { fill: #805038; }
+.band--gold { fill: #c4a34e; }
+.v-curve { fill: none; stroke: var(--coral); stroke-width: 3; }
+.v-loadline { fill: none; stroke: var(--blue); stroke-width: 2; stroke-dasharray: 6 4; }
+.v-point { fill: var(--lime); stroke: var(--paper); stroke-width: 1.5; }
+.v-diode-safe { fill: rgba(215,250,88,.1); stroke: var(--lime); stroke-width: 2; }
+.v-safe-line { fill: none; stroke: var(--lime); stroke-width: 3; }
+.v-danger-fill { fill: rgba(255,128,107,.16); stroke: none; }
+.v-switch { fill: #253536; stroke: var(--blue); stroke-width: 2; }
+.v-loop { fill: none; stroke: var(--coral); stroke-width: 2; stroke-dasharray: 4 3; }
+.tinkercad-embed { margin-top: 14px; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: rgba(25,39,39,.87); }
+.digital-sim-layout > .tinkercad-embed { grid-column: 1 / -1; }
+.tinkercad-embed__bar { min-height: 48px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.tinkercad-embed__toggle, .tinkercad-embed__external { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 11px; border: 1px solid #53635c; border-radius: 4px; background: transparent; color: var(--paper); font: 700 9px var(--font-display); letter-spacing: .06em; text-decoration: none; cursor: pointer; }
+.tinkercad-embed__toggle:hover, .tinkercad-embed__external:hover { border-color: var(--blue); color: var(--blue); }
+.tinkercad-embed__frame { display: block; width: 100%; height: min(68vh,620px); min-height: 420px; border: 0; background: #10191a; }
+.tinkercad-embed__note { margin: 0; padding: 8px 12px; color: #91a097; font-size: 10px; line-height: 1.45; }
+.large-switch { min-height: 43px; padding: 0 15px; border: 1px solid #62716a; border-radius: 4px; background: #1a2929; color: var(--paper); font: 700 10px var(--font-display); cursor: pointer; }
+.large-switch--pressed { border-color: var(--lime); color: var(--lime); }
+.button-led-stage { min-height: 190px; display: grid; grid-template-columns: 1fr minmax(110px,1.2fr) 1fr; align-items: center; gap: 12px; }
+.physical-button-wrap, .large-led-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #b3c0b6; font-size: 10px; }
+.physical-button { width: 58px; height: 58px; display: grid; place-items: center; border: 1px solid #718078; border-radius: 50%; background: #263736; cursor: pointer; }
+.physical-button span { width: 30px; height: 30px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 16px rgba(255,128,107,.25); }
+.physical-button--pressed span { transform: translateY(3px); background: #d8594a; }
+.large-led { width: 34px; height: 34px; border: 2px solid #83918a; border-radius: 50%; background: #34413d; }
+.large-led--on { border-color: var(--lime); background: var(--lime); box-shadow: 0 0 25px rgba(215,250,88,.75); }
+.large-led--burn { border-color: var(--coral); background: #4a2827; box-shadow: 0 0 19px rgba(255,128,107,.45); }
+.logic-arrow { display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--blue); text-align: center; font-size: 9px; }
+.logic-arrow small { color: #c3cec4; line-height: 1.5; }
+.truth-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 0; border-top: 1px solid var(--line); color: #92a097; font: 700 8px var(--font-display); letter-spacing: .06em; }
+.truth-row b { color: var(--lime); }
+.digital-sim-card .simulation-link { margin-top: 8px; }
+.overcurrent-panel { padding: 18px; }
+.overcurrent-top { display: flex; justify-content: space-between; align-items: end; gap: 15px; }
+.overcurrent-top strong { display: block; margin-top: 5px; color: var(--coral); font: 700 24px var(--font-display); }
+.overcurrent-top label { width: min(240px,55%); }
+.current-meter { margin: 19px 0; }
+.current-meter__labels, .current-meter__scale { display: flex; justify-content: space-between; gap: 8px; color: #96a39c; font: 700 8px var(--font-display); letter-spacing: .08em; }
+.current-meter__labels b { color: var(--coral); }
+.current-meter__track { height: 14px; overflow: hidden; margin: 8px 0 5px; border-radius: 2px; background: linear-gradient(90deg,rgba(215,250,88,.15) 0 33%,rgba(255,128,107,.13) 33%); }
+.current-meter__fill { height: 100%; background: var(--lime); transition: width 180ms ease; }
+.current-meter__fill.is-danger { background: var(--coral); }
+.thermal-state { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--line); background: rgba(10,16,17,.24); }
+.thermal-state--danger { border-color: rgba(255,128,107,.42); }
+.thermal-state p { margin: 5px 0 0; color: #b4c0b7; font-size: 11px; line-height: 1.45; }
+.thermal-state b { color: var(--coral); font: 700 10px var(--font-display); }
+.thermal-state--safe b { color: var(--lime); }
+.overcurrent-facts { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 13px; }
+.overcurrent-facts span { display: flex; flex-direction: column; gap: 5px; }
+.overcurrent-facts b { color: #dbe4d9; font: 600 11px "Aptos", sans-serif; }
+.debug-sequence { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 20px; color: #aab8af; font: 700 8px var(--font-display); letter-spacing: .07em; }
+.debug-sequence svg { color: var(--blue); }
+.debug-card { padding: 18px; }
+.debug-card h2 { margin: 8px 0 15px; color: var(--paper); font: 700 23px var(--font-display); }
+.resistor-lab-layout { display: grid; grid-template-columns: minmax(260px,.75fr) minmax(0,1.25fr); gap: 14px; }
+.lab-heading { grid-column: 1 / -1; }
+.resistor-lab-grid { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(230px,.7fr) minmax(0,1.3fr); gap: 14px; }
+.lab-controls, .circuit-model { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.control-title { display: flex; gap: 10px; align-items: center; color: #aab8af; font: 700 9px var(--font-display); letter-spacing: .1em; }
+.control-title span { color: var(--lime); }
+.input-with-unit { display: flex; }
+.input-with-unit input { border-radius: 4px 0 0 4px; }
+.input-with-unit span { min-width: 42px; display: grid; place-items: center; border: 1px solid #52625b; border-left: 0; border-radius: 0 4px 4px 0; background: #243331; color: var(--lime); }
+.range-line { display: flex; align-items: center; gap: 10px; }
+.range-line input { flex: 1; accent-color: var(--lime); }
+.range-line b { min-width: 34px; color: var(--lime); text-align: right; }
+.result { min-height: 58px; display: flex; flex-direction: column; justify-content: center; gap: 5px; padding: 9px 11px; border: 1px solid var(--line); background: rgba(8,14,15,.28); }
+.result span { color: #91a097; font: 700 8px var(--font-display); letter-spacing: .08em; }
+.result b { color: var(--paper); font: 700 15px var(--font-display); }
+.result--lime b { color: var(--lime); }
+.result--danger { border-color: rgba(255,128,107,.4); }
+.result--danger b { color: var(--coral); }
+.result-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.circuit-model svg { width: 100%; max-height: 295px; }
+.resistor-shape { fill: #b7a17b; stroke: #e1d3b1; }
+.circuit-text { fill: #dce5d8; font: 700 12px "Aptos",sans-serif; }
+.circuit-text--dark { fill: #172323; }
+.circuit-small { fill: #aab8af; font: 700 9px "Bahnschrift",sans-serif; }
+.wire { fill: none; stroke: #95a69e; stroke-width: 3; }
+.wire--blue { stroke: var(--blue); }
+.exit-layout { display: grid; grid-template-columns: .65fr 1.35fr; gap: 20px; }
+.exit-quiz { display: flex; flex-direction: column; gap: 12px; }
+.exit-question { padding: 13px; border-bottom: 1px solid var(--line); }
+.exit-options { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.exit-options button { min-height: 34px; padding: 5px 9px; border: 1px solid #52625b; border-radius: 4px; background: #1b2b2a; color: #c7d1c7; font-size: 10px; cursor: pointer; }
+.reflection-field { display: flex; flex-direction: column; gap: 7px; color: #94a198; font: 700 8px var(--font-display); letter-spacing: .1em; }
+.reflection-field textarea { width: 100%; resize: vertical; padding: 9px; border: 1px solid #52625b; border-radius: 4px; background: #172323; color: var(--paper); }
+.code-layout { display: grid; grid-template-columns: .7fr 1.3fr; gap: 18px; align-items: center; }
+.code-trace-panel { border: 1px solid var(--line); background: #121d1e; }
+.code-window-head, .pin-state { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 13px; border-bottom: 1px solid var(--line); color: #9eada4; font: 700 9px var(--font-display); }
+.code-trace-panel pre { margin: 0; padding: 9px 0; overflow-x: auto; color: #dbe4d9; font: 12px/1.8 Consolas, monospace; }
+.code-line { display: flex; gap: 14px; padding: 0 12px; }
+.code-line > span { color: #718079; }
+.code-line--active { background: rgba(215,250,88,.1); }
+.pin-state { border-top: 1px solid var(--line); border-bottom: 0; }
+.trace-caption { margin: 0; padding: 10px 13px; color: #aebbb2; font-size: 11px; }
+@media (max-width: 900px) {
+  .tinkercad-grid, .iv-layout-grid, .digital-sim-layout, .overcurrent-layout, .debug-layout, .challenge-layout, .resistor-lab-grid, .exit-layout, .code-layout { grid-template-columns: 1fr; }
+  .band-selectors { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .led-reference-row { grid-template-columns: 1fr 1fr .8fr; }
+  .led-reference-row > :last-child { display: none; }
+  .slide-heading h1 { font-size: 40px; }
+}
+@media (max-width: 600px) {
+  html, body, #root, .app-shell { min-width: 0; max-width: 100%; }
+  .topbar { height: 54px; min-height: 54px; padding: 0 9px; gap: 4px; grid-template-columns: minmax(0,1fr) auto; }
+  .topbar-center { display: none; }
+  .course-mark { gap: 7px; }
+  .course-mark__text { min-width: 0; }
+  .course-mark__symbol { width: 30px; height: 30px; }
+  .course-mark__text b { font-size: 12px; white-space: nowrap; }
+  .course-mark__text small { display: none; }
+  .topbar-tools { gap: 4px; }
+  .topbar-tools .score-chip { height: 30px; gap: 4px; padding: 0 6px; font-size: 9px; }
+  .topbar-tools .icon-button { width: 30px; height: 30px; }
+  .bottombar { height: 56px; min-height: 56px; display: flex; justify-content: flex-end; padding: 0 9px; }
+  .keyboard-hint, .slide-dots { display: none; }
+  .bottom-controls { width: 100%; gap: 5px; }
+  .slide-counter { min-width: 45px; margin-right: auto; font-size: 10px; }
+  .nav-button--back { width: 32px; }
+  .nav-button--next { min-width: 69px; padding: 0 7px; }
+  .slide { padding: 20px 16px 18px; }
+  .bands-panel { padding: 13px; }
+  .bands-mode { align-items: flex-start; font-size: 8px; }
+  .segmented-control { max-width: 100%; }
+  .segmented-control button { min-height: 30px; padding: 0 8px; font-size: 8px; }
+  .watermark { right: 6px; bottom: 60px; font-size: 8px; }
+  .band-result { grid-template-columns: 1fr 1fr; }
+  .band-result > div:last-child { grid-column: 1 / -1; }
+  .resistor-lead { width: 8vw; }
+  .resistor-body { width: 74vw; }
+  .led-reference-row { grid-template-columns: 1fr 1fr; gap: 7px; font-size: 10px; }
+  .led-reference-row > :nth-child(3) { text-align: right; }
+  .led-reference-row--head > :nth-child(3) { display: none; }
+  .button-led-stage { grid-template-columns: 1fr 1fr; }
+  .logic-arrow { grid-column: 1 / -1; grid-row: 2; flex-direction: row; justify-content: center; flex-wrap: wrap; }
+  .overcurrent-facts { grid-template-columns: 1fr 1fr; }
+  .overcurrent-facts span:last-child { grid-column: 1 / -1; }
+  .tinkercad-embed__frame { height: 62vh; min-height: 360px; }
+  .slide-heading h1, .lab-component-heading h2 { font-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
