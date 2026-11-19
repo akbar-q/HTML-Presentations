@@ -14,6 +14,7 @@ on:
       - 'EEE4015/week-08/**'
       - 'EEE4015/week-09/**'
       - 'EEE4015/week-10/**'
+      - 'EEE4015/index.html'
       - 'index.html'
       - '404.html'
       - 'assets/eee4015-hub.css'
@@ -115,6 +116,7 @@ jobs:
         run: |
           mkdir -p _site/assets _site/EEE4015/week-01 _site/EEE4015/week-02 _site/EEE4015/week-03 _site/EEE4015/week-04 _site/EEE4015/week-05 _site/EEE4015/week-06 _site/EEE4015/week-07 _site/EEE4015/week-08 _site/EEE4015/week-09 _site/EEE4015/week-10
           cp index.html 404.html _site/
+          cp EEE4015/index.html _site/EEE4015/index.html
           cp assets/eee4015-hub.css _site/assets/
           cp -R EEE4015/week-01/dist/. _site/EEE4015/week-01/
           cp -R EEE4015/week-02/dist/. _site/EEE4015/week-02/

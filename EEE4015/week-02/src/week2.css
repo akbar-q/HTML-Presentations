@@ -201,7 +201,10 @@
 .reflection-field { display: flex; flex-direction: column; gap: 7px; color: #94a198; font: 700 8px var(--font-display); letter-spacing: .1em; }
 .reflection-field textarea { width: 100%; resize: vertical; padding: 9px; border: 1px solid #52625b; border-radius: 4px; background: #172323; color: var(--paper); }
 .code-layout { display: grid; grid-template-columns: .7fr 1.3fr; gap: 18px; align-items: center; }
-.code-trace-panel { border: 1px solid var(--line); background: #121d1e; }
+.code-trace-panel { min-width: 0; border: 1px solid var(--line); background: #121d1e; }
+.code-steps { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.code-steps button { min-height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 9px; border: 1px solid #52625b; border-radius: 4px; background: #192827; color: #cbd6cc; font: 700 8px var(--font-display); cursor: pointer; }
+.code-steps button svg { flex: 0 0 auto; color: var(--lime); }
 .code-window-head, .pin-state { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 13px; border-bottom: 1px solid var(--line); color: #9eada4; font: 700 9px var(--font-display); }
 .code-trace-panel pre { margin: 0; padding: 9px 0; overflow-x: auto; color: #dbe4d9; font: 12px/1.8 Consolas, monospace; }
 .code-line { display: flex; gap: 14px; padding: 0 12px; }
@@ -218,6 +221,8 @@
 }
 @media (max-width: 600px) {
   html, body, #root, .app-shell { min-width: 0; max-width: 100%; }
+  .code-steps { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
+  .code-steps button { min-width: 0; justify-content: center; gap: 5px; padding: 6px 4px; font-size: 7px; white-space: nowrap; }
   .topbar { height: 54px; min-height: 54px; padding: 0 9px; gap: 4px; grid-template-columns: minmax(0,1fr) auto; }
   .topbar-center { display: none; }
   .course-mark { gap: 7px; }
