@@ -553,7 +553,56 @@ function drawInteractiveCircuit({branchCount,resistor,ledColor}:{branchCount:num
   </>;
 }
 
-function CodeTrace() { const [line,setLine] = useState(0);const code=['const byte LED_PIN = 3;','void setup() {','  pinMode(LED_PIN, OUTPUT);','}','void loop() {','  digitalWrite(LED_PIN, HIGH);','  delay(500);','  digitalWrite(LED_PIN, LOW);','  delay(500);','}'];return <div className="code-layout"><div><Heading slide={22} eyebrow="CODE TRACE / LED BLINK" title={<>Follow the instruction.<br/><span className="text-blue">Predict the pin.</span></>} subtitle="Step through a minimal sketch. Which line configures the pin? Which lines change its output state?" tone="blue"/><div className="code-steps"><button onClick={()=>setLine((value)=>(value+1)%code.length)}><ArrowRight size={16}/> STEP NEXT LINE</button><button onClick={()=>setLine(0)}><RotateCcw size={15}/> RESET TRACE</button></div></div><div className="code-trace-panel"><div className="code-window-head"><span><i/>sketch.ino</span><b>{line<4?'setup()':'loop()'} / LINE {line+1}</b></div><pre>{code.map((text,index)=><div key={index} className={`code-line ${index===line?'code-line--active':''}`}><span>{String(index+1).padStart(2,'0')}</span><code>{text||' '}</code></div>)}</pre><div className="pin-state"><span>PIN D3</span><b className={line===5?'pin-high':line===7?'pin-low':''}>{line===5?'HIGH / LED ON':line===7?'LOW / LED OFF':line<4?'OUTPUT CONFIGURATION':'WAIT / LOOP'}</b><div className={`mini-led ${line===5?'mini-led--on':''}`}/></div><p className="trace-caption" aria-live="polite">{line===2?'pinMode configures D3 as an output.':line===5?'HIGH drives the output state high; with a resistor and correctly oriented LED, the LED lights.':line===7?'LOW drives the output state low; the LED turns off in this example.':'The repeated loop makes the on/off pattern observable.'}</p></div></div>; }
+function CodeTrace() {
+  const [example, setExample] = useState<'blink' | 'button'>('blink');
+  const [line, setLine] = useState(0);
+  const traces = {
+    blink: {
+      label: 'LED OUTPUT',
+      code: ['const int LED_PIN = 3;', 'void setup() {', '  pinMode(LED_PIN, OUTPUT);', '}', 'void loop() {', '  digitalWrite(LED_PIN, HIGH);', '  delay(500);', '  digitalWrite(LED_PIN, LOW);', '  delay(500);', '}'],
+      notes: [
+        '`const` means fixed; `int` stores a whole number; `=` gives the named pin value 3.',
+        'Arduino calls `setup()` once after reset. Braces group its instructions.',
+        '`pinMode` is a function call. Its arguments name the pin and set it as an output.',
+        'This brace closes `setup()`.',
+        'Arduino calls `loop()` repeatedly while the board is running.',
+        '`digitalWrite` sets the output HIGH. The resistor-limited LED turns on.',
+        '`delay(500)` waits 500 milliseconds before the next instruction.',
+        'LOW sets the output low, so the LED turns off in this example.',
+        'The wait makes the blink visible; then `loop()` starts again.',
+        'This brace closes `loop()`.',
+      ],
+    },
+    button: {
+      label: 'BUTTON DECISION',
+      code: ['const int LED_PIN = 3;', 'const int BUTTON_PIN = 2;', 'bool pressed = false;', 'void setup() {', '  pinMode(LED_PIN, OUTPUT);', '  pinMode(BUTTON_PIN, INPUT_PULLUP);', '}', 'void loop() {', '  pressed = (digitalRead(BUTTON_PIN) == LOW);', '  if (pressed) {', '    digitalWrite(LED_PIN, HIGH);', '  } else {', '    digitalWrite(LED_PIN, LOW);', '  }', '}'],
+      notes: [
+        '`const int` gives the LED pin a clear name and fixed value.',
+        'This named constant identifies the button input pin in the wiring plan.',
+        '`bool` stores one of two values: `true` or `false`. It starts false here.',
+        '`setup()` runs once. Its braces group the pin configuration.',
+        'Configure the LED pin as an output before writing HIGH or LOW.',
+        'With `INPUT_PULLUP`, a released button reads HIGH and a pressed button reads LOW.',
+        'This brace closes `setup()`.',
+        '`loop()` repeats, so the button can be checked again and again.',
+        '`digitalRead` gets the pin state. `==` compares with LOW; `=` stores the answer in `pressed`.',
+        '`if` checks whether `pressed` is true, then chooses a path.',
+        'This indented instruction runs when the button is pressed.',
+        '`else` begins the alternative path when `pressed` is false.',
+        'This instruction runs when the button is released.',
+        'This brace closes the `if/else` choice.',
+        'This brace closes `loop()`.',
+      ],
+    },
+  };
+  const trace = traces[example];
+  const ledState = example === 'blink'
+    ? line === 5 ? 'high' : line === 7 ? 'low' : 'unknown'
+    : line === 10 ? 'high' : line === 12 ? 'low' : 'unknown';
+  const pinStatus = ledState === 'high' ? 'HIGH / LED ON' : ledState === 'low' ? 'LOW / LED OFF' : example === 'blink' ? 'FOLLOW THE OUTPUT' : 'READ / CHOOSE A PATH';
+  const selectExample = (nextExample: 'blink' | 'button') => { setExample(nextExample); setLine(0); };
+  return <div className="code-layout"><div><Heading slide={22} eyebrow="CODE TRACE / ONE IDEA AT A TIME" title={<>Read the code.<br/><span className="text-blue">Then change one thing.</span></>} subtitle="Start with an LED output. After the button and pull-up lesson, switch to the input decision. Step slowly; there is no need to memorise syntax." tone="blue"/><div className="segmented-control" role="group" aria-label="Choose a code example"><button type="button" className={example === 'blink' ? 'is-active' : ''} aria-pressed={example === 'blink'} onClick={() => selectExample('blink')}>1 / LED OUTPUT</button><button type="button" className={example === 'button' ? 'is-active' : ''} aria-pressed={example === 'button'} onClick={() => selectExample('button')}>2 / BUTTON DECISION</button></div><div className="code-steps"><button type="button" onClick={() => setLine((value) => (value + 1) % trace.code.length)}><ArrowRight size={16}/> STEP NEXT LINE</button><button type="button" onClick={() => setLine(0)}><RotateCcw size={15}/> RESET TRACE</button></div></div><div className="code-trace-panel"><div className="code-window-head"><span><i/>sketch.ino</span><b>{trace.label} / LINE {line + 1} OF {trace.code.length}</b></div><pre>{trace.code.map((text, index) => <div key={index} className={`code-line ${index === line ? 'code-line--active' : ''}`}><span>{String(index + 1).padStart(2, '0')}</span><code>{text}</code></div>)}</pre><div className="pin-state"><span>{example === 'blink' ? 'PIN D3' : 'BUTTON → LED'}</span><b className={ledState === 'high' ? 'pin-high' : ledState === 'low' ? 'pin-low' : ''}>{pinStatus}</b><div className={`mini-led ${ledState === 'high' ? 'mini-led--on' : ''}`}/></div><p className="trace-caption" aria-live="polite">{trace.notes[line]}</p></div></div>;
+}
 
 function ButtonSimulation() {
   const [pressed, setPressed] = useState(false);
